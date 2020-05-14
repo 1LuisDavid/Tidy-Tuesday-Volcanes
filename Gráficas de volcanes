@@ -1,0 +1,51 @@
+#####    Obtener los datos    -----
+
+pacman::p_load(readr, maps, viridis, ggrepel, tidyverse)
+
+volcano <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-12/volcano.csv')
+
+colnames(volcano)
+unique(volcano$country)
+
+
+mx <- volcano %>% filter(country == "Mexico") %>%
+  arrange(desc(elevation))
+
+
+
+#Encontrar mapas
+paises <- 
+map_data("world") %>%  select(region) %>% group_by(region) %>% count() %>% ungroup()
+
+unique(paises$region)
+
+mexmap <- map_data("world") %>% filter(region == "Mexico")
+
+colnames(mexmap)
+
+
+#Crear gráfica
+
+g <-  
+  ggplot() +
+  geom_polygon(data = mexmap, aes(x = long, y = lat, group = group), fill = "grey", alpha = 0.3) +
+  geom_point(data = mx, aes(x = longitude, y = latitude, size = elevation, color = elevation, alpha = 0.9)) +
+  scale_size_continuous(range = c(0.5,7), name = "") +
+  scale_color_viridis(option = "D" , name = "Elevación") +
+  geom_text_repel(data = mx %>% arrange(elevation) %>% tail(10), aes(x=longitude, y=latitude, label=volcano_name), size=3, box.padding = 1.5, segment.alpha = 0.5) +
+  theme_void()
+g
+
+
+g <- 
+g +
+  ggtitle("Elevación de los volcanes mexicanos") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20, face = "bold")) +
+  theme(legend.title = element_text(vjust = 3)) +
+  theme(legend.position = c(0.9, 0.3)) +
+  guides(alpha = FALSE, size = F)
+g
+
+
+
+
